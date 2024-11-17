@@ -7,17 +7,14 @@ import (
 	"path/filepath"
 )
 
-// Path to the credentials file
-const credentialsFile = "vipinnotes_admin_creds.json"
+const credentialsFile = ".vipinnotes_admin_creds.json"
 
-// Credentials structure
 type Credentials struct {
 	Email      string `json:"email"`
 	Password   string `json:"password"`
 	AdminToken string `json:"admin_token"`
 }
 
-// SaveCredentials stores the user's credentials in a local file
 func SaveCredentials(creds Credentials) {
 	configPath, _ := filepath.Abs(credentialsFile)
 	file, _ := json.MarshalIndent(creds, "", "  ")
@@ -28,7 +25,6 @@ func SaveCredentials(creds Credentials) {
 	}
 }
 
-// LoadCredentials reads the credentials from the local file
 func LoadCredentials() (Credentials, error) {
 	configPath, _ := filepath.Abs(credentialsFile)
 
@@ -44,8 +40,6 @@ func LoadCredentials() (Credentials, error) {
 
 	return creds, nil
 }
-
-// DeleteCredentials removes the credentials file (used for logout)
 func DeleteCredentials() error {
 	configPath, _ := filepath.Abs(credentialsFile)
 	return os.Remove(configPath)

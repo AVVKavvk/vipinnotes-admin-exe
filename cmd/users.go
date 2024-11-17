@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// usersCmd represents the users command
 var usersCmd = &cobra.Command{
 	Use:   "users",
 	Short: "Fetch users for vipinnotes",
@@ -35,7 +34,6 @@ func init() {
 	RootCmd.AddCommand(usersCmd)
 }
 
-// fetchUsers sends an authenticated request to fetch users
 func fetchUsers(creds utils.Credentials) (string, error) {
 	apiURL := "https://vipinnotes.com/api/admin/users" // Replace with your API endpoint
 

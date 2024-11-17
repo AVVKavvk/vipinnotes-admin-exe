@@ -8,9 +8,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.co/vipinnotes-cli/utils"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var loginCmd = &cobra.Command{
@@ -23,11 +25,28 @@ func login(cmd *cobra.Command, args []string) {
 	var email, password, adminToken string
 	fmt.Print("Enter Email: ")
 	fmt.Scanln(&email)
-	fmt.Print("Enter Password: ")
-	fmt.Scanln(&password)
-	fmt.Print("Enter Admin Token: ")
-	fmt.Scanln(&adminToken)
+	// fmt.Print("Enter Password: ")
+	// fmt.Scanln(&password)
+	// fmt.Print("Enter Admin Token: ")
+	// fmt.Scanln(&adminToken)
 
+	fmt.Print("Enter Password: ")
+	passwordBytes, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		fmt.Printf("Failed to read password: %v\n", err)
+		return
+	}
+	password = string(passwordBytes) 
+	fmt.Println()
+
+	fmt.Print("Enter Admin Token: ")
+	adminTokenBytes, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		fmt.Printf("Failed to read admin token: %v\n", err)
+		return
+	}
+	adminToken = string(adminTokenBytes)
+	fmt.Println()
 
 	creds := utils.Credentials{
 		Email:      email,
@@ -35,7 +54,7 @@ func login(cmd *cobra.Command, args []string) {
 		AdminToken: adminToken,
 	}
 
-	err := authenticateUser(creds)
+	err = authenticateUser(creds)
 	if err != nil {
 		fmt.Printf("Failed to log in: %v\n", err)
 		return
@@ -46,7 +65,7 @@ func login(cmd *cobra.Command, args []string) {
 }
 
 func authenticateUser(creds utils.Credentials) error {
-	apiURL := "https://noteswebsiteserver.onrender.com/admin/users"
+	apiURL := VipinNotesURL+"/admin/users"
 
 	reqBody, err := json.Marshal(map[string]interface{}{
 		"adminEmail":    creds.Email,
