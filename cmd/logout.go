@@ -22,7 +22,7 @@ func logout(cmd *cobra.Command, args []string )  {
 		err:= utils.DeleteCredentials()
 
 		if err!=nil{
-			fmt.Println("Somethings went wrong, %v",err.Error())
+			fmt.Printf("Somethings went wrong, %v\n",err.Error())
 		}else{
 			fmt.Println("Successfully logout")
 		}
