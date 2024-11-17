@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -21,20 +22,26 @@ var (
 
  searchByNameCmd = &cobra.Command{
 	Use: "name",
-	Short: "Search user by name, it return all the users who's name contains name string",
+	Short: " <name> Search user by name, it return all the users who's name contains name string",
 	Run: searchByName,
  }
 
  searchByEmailCmd = &cobra.Command{
 	Use: "email",
-	Short: "Search user by email, it return all the users who's email contains name email",
+	Short: "<email> Search user by email, it return all the users who's email contains name email",
 	Run: searchByEmail,
  }
  
  updateUserNameCmd = &cobra.Command{
 	Use: "update",
-	Short: "Update name of user by email",
+	Short: "<email> Update name of user by email",
 	Run: updateUserName,
+ }
+
+ getUserCmd = &cobra.Command{
+	Use: "users",
+	Short: "<n> Get last n users",
+	Run: getUsers,
  }
 )
 
@@ -76,6 +83,25 @@ func updateUserName(cmd *cobra.Command, args []string){
 	}
 
 	updateUserNameByEmail(name, email)
+
+}
+
+func getUsers(cmd *cobra.Command, args []string)   {
+	var count int
+	fmt.Print("Enter Count: ")
+	_, err := fmt.Scanln(&count)
+	if err != nil {
+		fmt.Println("Invalid input. Please enter a valid number.")
+		return
+	}
+	if count <= 0 {
+		fmt.Println("Count must be a positive number.")
+		return
+	}
+	err= getUsersByCount(count)
+	if err!=nil{
+		fmt.Println(err.Error())
+	}
 
 }
 
@@ -281,10 +307,64 @@ func updateUserNameByEmail(name, email string) {
 	}
 }
 
+func  getUsersByCount(count int) error {
+	apiURL := VipinNotesURL+"/admin/users"
+	adminCredentials,err:=utils.LoadCredentials()
+
+	reqBody, err := json.Marshal(map[string]interface{}{
+		"adminEmail":    adminCredentials.Email,
+		"adminPassword": adminCredentials.Password,
+		"token":         adminCredentials.AdminToken,
+		"number":        count, 
+	})
+	if err != nil {
+		return fmt.Errorf("failed to encode credentials: %w", err)
+	}
+
+	resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(reqBody))
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("Error reading response body: %v", err)
+			return fmt.Errorf("Error reading response body: %v", err.Error())
+		}
+
+		var response map[string]interface{}
+		if err := json.Unmarshal(body, &response); err != nil {
+			log.Fatalf("Error unmarshalling response body: %v", err)
+			return fmt.Errorf("Error unmarshalling response body: %v", err.Error())
+		}
+
+		if status, ok := response["status"].(string); ok && status == "error" {
+			if message, exists := response["message"].(string); exists {
+				fmt.Printf("Error: %s\n", message)
+			}
+			fmt.Println(string(body))
+			return errors.New("You are not an admin")
+		} else {
+			var formattedBody interface{}
+			if err := json.Unmarshal(body, &formattedBody); err != nil {
+				log.Fatal("Failed to unmarshal JSON:", err)
+			}
+			prettyJSON, err := json.MarshalIndent(formattedBody, "", "  ")
+			if err != nil {
+				log.Fatal("Failed to marshal JSON with indentation:", err)
+			}
+			fmt.Println(string(prettyJSON))
+			return nil
+		}
+
+}
+
 func init(){
 	RootCmd.AddCommand(searchCmd)
 	searchCmd.AddCommand(searchByNameCmd)
 	searchCmd.AddCommand(searchByEmailCmd)
 	searchCmd.AddCommand(updateUserNameCmd)
+	searchCmd.AddCommand(getUserCmd)
 	
 }
