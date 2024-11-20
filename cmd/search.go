@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -8,6 +9,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.co/vipinnotes-cli/utils"
 	"github.com/spf13/cobra"
@@ -46,9 +49,11 @@ var (
 )
 
 func searchByName(cmd *cobra.Command, args []string)  {
-	var name string
-	fmt.Print("Enter Name : ")
-	fmt.Scanln(&name)
+	reader := bufio.NewReader(os.Stdin)
+	
+	fmt.Print("Enter Name: ")
+	name, _ := reader.ReadString('\n')
+	name = strings.TrimSpace(name)
 	
 	if name == "" {
 		fmt.Println("Name should be there")
@@ -58,9 +63,11 @@ func searchByName(cmd *cobra.Command, args []string)  {
 }
 
 func searchByEmail(cmd *cobra.Command, args []string){
-	var email string
-	fmt.Print("Enter Email : ")
-	fmt.Scanln(&email)
+	reader := bufio.NewReader(os.Stdin)
+	
+	fmt.Print("Enter Email: ")
+	email, _ := reader.ReadString('\n')
+	email = strings.TrimSpace(email)
 
 	if email == "" {
 		fmt.Println("Name should be there")
@@ -71,17 +78,20 @@ func searchByEmail(cmd *cobra.Command, args []string){
 }
 
 func updateUserName(cmd *cobra.Command, args []string){
-	var email, name string
-	fmt.Print("Enter Email : ")
-	fmt.Scanln(&email)
-	fmt.Print("Enter Name : ")
-	fmt.Scanln(&name)
+	reader := bufio.NewReader(os.Stdin)
+	
+	fmt.Print("Enter Email: ")
+	email, _ := reader.ReadString('\n')
+	email = strings.TrimSpace(email)
 
-	if email=="" || name==""{
-		fmt.Println("All fields are requried")
+	fmt.Print("Enter Name: ")
+	name, _ := reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+
+	if email == "" || name == "" {
+		fmt.Println("All fields are required")
 		return
 	}
-
 	updateUserNameByEmail(name, email)
 
 }
